@@ -251,9 +251,10 @@ int main(int argc, char *argv[])
 
     // get command (+history +completion)
     bool running = true;
+    cmds.enable_timeout(5);
     while (running) {
-        cmds.clear();
-        switch (cmds.run(__mask)) {
+        commands::status_t ret = cmds.run(__mask);
+        switch (ret) {
         case commands::VALID_COMMAND:
             if (execute_command(&cmds) != 0)
                 running = false;
@@ -282,7 +283,12 @@ int main(int argc, char *argv[])
         case commands::TERMINATED:
             // cancel current command
             break;
+        case commands::TIMEOUT:
+            //NOTE: must call cmds.clear() if screen modified (e.g. printf) before calling cmds.run() again
+            break;
         }
+        if (ret != commands::TIMEOUT)
+            cmds.clear();
     }
 
     tdriver.shutdown(); // not strictly required; done here to clean up before logging disabled

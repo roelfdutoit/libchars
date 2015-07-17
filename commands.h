@@ -225,6 +225,7 @@ namespace libchars {
             TOO_FEW_ARGS,       // command found, not enough arguments specified
             TOO_MANY_ARGS,      // command found, too many arguments specified
             TERMINATED,         // command entry terminated with ctrl^C
+            TIMEOUT,            // terminal timeout; 
         } status_t;
 
     private:
@@ -277,6 +278,7 @@ namespace libchars {
 
         std::string rendered_str;
         command_chars characters;
+        size_t timeout;
 
     public:
         const char *color_str(command_colors_e color_idx) const;
@@ -300,6 +302,9 @@ namespace libchars {
 
         inline void load(const std::string &cmdline) { set(cmdline.c_str()); }
 
+        void enable_timeout(size_t timeout_s = 10);
+        void disable_timeout();
+    
         status_t run(command::filter_t mask = command::UNLOCK_ALL); // editor --> command + arguments (validated)
 
         inline command *get() { return cmd; } // only valid after call to run()

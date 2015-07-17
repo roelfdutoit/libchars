@@ -78,7 +78,7 @@ namespace libchars {
 
     private:
         int reallocate(size_t size_log2);
-        int read_characters();
+        int read_characters(size_t timeout_s = 0);
         void get_terminal_width_and_height();
 
     public:
@@ -111,7 +111,7 @@ namespace libchars {
 
         int write(const char *sequence, size_t seqlen);
 
-        int read(uint8_t &c);
+        int read(uint8_t &c, size_t timeout_s = 0);
 
         bool read_available() const;
 

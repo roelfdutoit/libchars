@@ -51,6 +51,7 @@ namespace libchars {
         PRINTABLE_CHAR,
         PARTIAL_SEQ,
         IGNORE_SEQ,
+        SEQ_TIMEOUT,
     };
 
     class edit_object
@@ -242,8 +243,8 @@ namespace libchars {
         int print();
 
     public:
-        int edit(edit_object &obj_ref);
-        int edit(std::string &str);
+        int edit(edit_object &obj_ref, size_t timeout_s = 0);
+        int edit(std::string &str, size_t timeout_s = 0);
 
         inline bool interactive() const { return driver.interactive(); }
         inline bool control() const { return driver.control(); }

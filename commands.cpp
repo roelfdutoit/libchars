@@ -664,7 +664,8 @@ namespace libchars {
         edit_object(libchars::MODE_COMMAND),
         edit(d),mask(0),
         remember(NULL),status(EMPTY),dirty(true),
-        t_cmd(NULL), t_par(NULL),cmd(NULL) {}
+        t_cmd(NULL), t_par(NULL),cmd(NULL),
+        timeout(0) {}
 
     commands::~commands()
     {
@@ -1079,6 +1080,7 @@ namespace libchars {
 
         switch (status) {
         case TERMINATED:
+        case TIMEOUT:
             // ignore
             break;
         case VALID_COMMAND:
@@ -1361,6 +1363,16 @@ namespace libchars {
         }
     }
 
+    void commands::enable_timeout(size_t timeout_s)
+    {
+        this->timeout = timeout_s;
+    }
+
+    void commands::disable_timeout()
+    {
+        this->timeout = 0;
+    }
+    
     commands::status_t commands::run(command::filter_t mask_)
     {
         build_commands();
@@ -1378,8 +1390,10 @@ namespace libchars {
           reset_status();
 
           while (true) {
-              (void)edit.edit(*this);
+              (void)edit.edit(*this,timeout);
               switch (edit.key()) {
+              case SEQ_TIMEOUT:
+                  return TIMEOUT; 
               case KEY_ENTER:
                   //TODO: remove quotes from strings
                   dump_tokens();

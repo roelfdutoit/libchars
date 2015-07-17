@@ -366,7 +366,7 @@ namespace libchars {
         return 0;
     }
 
-    int editor::edit(edit_object &obj_ref)
+    int editor::edit(edit_object &obj_ref, size_t timeout_s)
     {
         //TODO: remove newlines from prompt (not for multi-line mode)
 
@@ -379,7 +379,7 @@ namespace libchars {
 
         uint8_t c;
         int r;
-        while ((r = driver.read(c)) >= 0) {
+        while ((r = driver.read(c,timeout_s)) >= 0) {
             if (driver.size_changed() && obj->mode == MODE_COMMAND) {
                 // clear screen because position is not reliable after terminal size update
                 driver.clear_screen();
@@ -489,6 +489,7 @@ namespace libchars {
                     break;
                 case PARTIAL_SEQ:
                 case IGNORE_SEQ:
+                case SEQ_TIMEOUT:
                     break;// ignore sequence
                 }
 
@@ -496,14 +497,14 @@ namespace libchars {
                     print();
             }
         }
-        k = IGNORE_SEQ;
+        k = (r <= -3) ? SEQ_TIMEOUT : IGNORE_SEQ;
         return -1;
     }
 
-    int editor::edit(std::string &str)
+    int editor::edit(std::string &str, size_t timeout_s)
     {
         edit_object O_tmp(MODE_STRING,str);
-        int r = edit(O_tmp);
+        int r = edit(O_tmp, timeout_s);
         if (r == 0) str = O_tmp.value();
         return r;
     }

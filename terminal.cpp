@@ -150,7 +150,7 @@ namespace libchars {
         return 0;
     }
 
-    int terminal_driver::read_characters()
+    int terminal_driver::read_characters(size_t timeout_s)
     {
         while (true) {
             struct timeval T_now;
@@ -518,12 +518,35 @@ namespace libchars {
         return 0;
     }
 
-    int terminal_driver::read(uint8_t &c)
+    int terminal_driver::read(uint8_t &c, size_t timeout_s)
     {
-        while (rbuf_enq <= rbuf_deq) {
-            int r = read_characters();
-            if (r <= 0)
-                return r;
+        if (rbuf_enq <= rbuf_deq) {
+            struct timeval T_start;
+            gettimeofday(&T_start, NULL);
+            uint64_t t_msec_start = T_start.tv_sec * 1000ULL + T_start.tv_usec/1000ULL;
+            uint64_t timeout_ms = timeout_s * 1000UL;
+
+            while (rbuf_enq <= rbuf_deq) {
+                int r = read_characters(timeout_s);
+                if (r < 0)
+                    return r;
+                else if (r == 0) {
+                    if (timeout_s > 0) {
+                        struct timeval T_now;
+                        if (gettimeofday(&T_now, NULL) == 0) {
+                            uint64_t t_msec_now = T_now.tv_sec * 1000ULL + T_now.tv_usec/1000ULL;
+                            if (t_msec_now >= (t_msec_start + timeout_ms))
+                                return -3;
+                        }
+                        else {
+                            return r;
+                        }
+                    }
+                    else {
+                        return r;
+                    }
+                }
+            }
         }
 
         size_t rbuf_mask = (rbuf_size - 1);
