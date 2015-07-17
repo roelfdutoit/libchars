@@ -2,7 +2,7 @@ Copyright (C) 2013-2014 Roelof Nico du Toit.
 
 libchars - Command Line Interface (CLI) Framework
 
-Version 0.5 (2-Dec-2014)
+Version 0.6 (16-Jul-2015)
 
 See LICENSE.txt and all source files for license agreement.
 
@@ -66,6 +66,7 @@ The CLI framework has support for the following features:
 - Support for hidden commands (not in auto-complete or command list)
 - Non-interactive command parsing.
 - Command sets, which can be used to implement command levels.
+- Timeout on command editor; used for housekeeping before editing continues
 
 Known Issues
 ============

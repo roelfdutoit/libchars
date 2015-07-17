@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2013-2014 Roelof Nico du Toit.
+Copyright (C) 2013-2015 Roelof Nico du Toit.
 
 @description VT100 terminal driver
 

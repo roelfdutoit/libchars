@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2013-2014 Roelof Nico du Toit.
+Copyright (C) 2013-2015 Roelof Nico du Toit.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
