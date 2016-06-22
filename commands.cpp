@@ -672,6 +672,14 @@ namespace libchars {
         delete t_cmd;
     }
 
+    const std::string commands::value() const
+    {
+        std::string str;
+        if (length() > 0 && data() != NULL)
+            str.assign(data(),length());
+        return str;
+    }
+
     void commands::lexer()
     {
         delete t_cmd;
@@ -849,13 +857,13 @@ namespace libchars {
                         if (T->length == 1) {
                             C.render_length = color_length(t_color) + color_length(COLOR_NORMAL) + 1;
                             rendered_str.append(color_str(t_color));
-                            rendered_str += value().at(idx++);
+                            rendered_str += at(idx++);
                             rendered_str.append(color_str(COLOR_NORMAL));
                         }
                         else {
                             C.render_length = color_length(t_color) + 1;
                             rendered_str.append(color_str(t_color));
-                            rendered_str += value().at(idx++);
+                            rendered_str += at(idx++);
                         }
                     }
                     // middle characters
@@ -868,7 +876,7 @@ namespace libchars {
                         C.cursor_pos = nchars++;
                         C.render_offset = rendered_str.length();
                         C.render_length = 1;
-                        rendered_str += value().at(idx++);
+                        rendered_str += at(idx++);
                     }
                     // last character
                     if (T->length > 1) {
@@ -880,7 +888,7 @@ namespace libchars {
                         C.cursor_pos = nchars++;
                         C.render_offset = rendered_str.length();
                         C.render_length = color_length(COLOR_NORMAL) + 1;
-                        rendered_str += value().at(idx++);
+                        rendered_str += at(idx++);
                         rendered_str.append(color_str(COLOR_NORMAL));
                     }
                 }

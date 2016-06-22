@@ -58,7 +58,8 @@ namespace libchars {
     {
     private:
         const static size_t MAX_LINE = 16384;
-        std::string buffer;
+        char buffer[MAX_LINE];
+        size_t buflen;
     public:
         const mode_e mode;
         std::string prompt;
@@ -68,16 +69,48 @@ namespace libchars {
     private:
         void reset() {
             rewind();
-            insert_idx = length();
+            insert_idx = buflen;
         }
     public:
-        edit_object(mode_e m = MODE_STRING, const char *s = NULL) : mode(m) { if (s!=NULL) buffer.assign(s); reset(); }
-        edit_object(mode_e m, std::string &s) : buffer(s),mode(m) { reset(); }
-        virtual ~edit_object() {}
+        edit_object(mode_e m = MODE_STRING, const char *s = NULL) : mode(m) {
+            if (s != NULL) {
+                strncpy(buffer,s,sizeof(buffer)-1);
+                buffer[sizeof(buffer) - 1] = 0;
+                buflen = strlen(buffer);
+            }
+            else {
+                memset(buffer, 0, sizeof(buffer));
+                buflen = 0;
+            }
+            reset();
+        }
+        edit_object(mode_e m, std::string &s) : mode(m) { 
+            if (!s.empty()) {
+                strncpy(buffer,s.c_str(),sizeof(buffer)-1);
+                buffer[sizeof(buffer) - 1] = 0;
+                buflen = strlen(buffer);
+            }
+            else {
+                memset(buffer, 0, sizeof(buffer));
+                buflen = 0;
+            }
+            reset();
+        }
+        virtual ~edit_object() {
+            // securely wipe contents of buffer
+            if (buflen > 0) {
+                volatile char *p = buffer + buflen - 1;
+                while (buflen > 0) {
+                    *p-- = 0;
+                    --buflen;
+                }
+            }
+        }
 
-        inline const std::string &value() const { return buffer; }
-        inline size_t length() const { return buffer.length(); }
-        inline size_t idx(size_t idx_in) { return idx_in > length() ? length() : idx_in;}
+        inline const char *data() const { return buffer; }
+        inline size_t length() const { return buflen; }
+        inline char at(size_t idx) const { return *(buffer + idx); }
+        inline size_t idx(size_t idx_in) { return idx_in > buflen ? buflen : idx_in;}
         inline void rewind() { cursor = 0; prompt_rendered = 0; }
         inline void clear() { insert_idx = 0; wipe(); reset(); }
 
@@ -86,15 +119,17 @@ namespace libchars {
         virtual void set(const char *line, size_t idx = std::string::npos)
         {
             if (line != NULL) {
-                size_t L = length();
-                buffer.assign(line, 0, MAX_LINE);
+                size_t L = buflen;
+                strncpy(buffer,line,sizeof(buffer)-1);
+                buffer[sizeof(buffer) - 1] = 0;
+                buflen = strlen(buffer);
 
-                if (idx <= buffer.length())
+                if (idx <= buflen)
                     insert_idx = idx;
                 else
-                    insert_idx = buffer.length();
+                    insert_idx = buflen;
 
-                if (L > 0 && length() == 0)
+                if (L > 0 && buflen == 0)
                     emptied();
             }
             else {
@@ -105,52 +140,67 @@ namespace libchars {
 
         virtual void insert(const char c)
         {
-            if (length() < MAX_LINE) {
-                buffer.insert(insert_idx,1,c);
+            if (buflen < (MAX_LINE-1)) {
+                if (insert_idx < buflen) {
+                    memmove(buffer+insert_idx+1, buffer+insert_idx, buflen-insert_idx);
+                }
+                volatile char *p = buffer + insert_idx;
+                *p = c;
                 ++insert_idx;
+                ++buflen;
             }
         }
+
         virtual void wipe()
         {
-            size_t L = length();
-            if (insert_idx < length()) {
-                buffer.erase(insert_idx);
+            if (buflen > insert_idx) {
+                volatile char *p = buffer + buflen - 1;
+                while (buflen > insert_idx) {
+                    *p-- = 0;
+                    --buflen;
+                }
+                if (buflen == 0)
+                    emptied();
             }
-            if (L > 0 && length() == 0)
-                emptied();
         }
+        
         virtual void del()
         {
-            size_t L = length();
-            if (insert_idx < length()) {
-                buffer.erase(insert_idx, 1);
+            size_t L = buflen;
+            if (insert_idx < buflen) {
+                if (insert_idx < (buflen-1)) {
+                    memmove(buffer+insert_idx, buffer+insert_idx+1, buflen-1-insert_idx);
+                }
+                volatile char *p = buffer + buflen - 1;
+                *p = 0;
+                --buflen;
             }
-            if (L > 0 && length() == 0)
+            if (L > 0 && buflen == 0)
                 emptied();
         }
+        
         virtual void bksp()
         {
-            size_t L = length();
             if (insert_idx > 0) {
                 --insert_idx;
-                buffer.erase(insert_idx, 1);
+                del();
             }
-            if (L > 0 && length() == 0)
-                emptied();
         }
+        
         virtual void swap()
         {
-            if (insert_idx > 0 && insert_idx <= length() && length() > 1) {
+            if (insert_idx > 0 && insert_idx <= buflen && buflen > 1) {
                 size_t swap_idx = insert_idx;
-                if (swap_idx == length())
+                if (swap_idx == buflen)
                     --swap_idx;
-                char c = buffer.at(swap_idx);
-                buffer.at(swap_idx) = buffer.at(swap_idx - 1);
-                buffer.at(swap_idx - 1) = c;
-                if (insert_idx < length())
+                char c = *(buffer + swap_idx);
+                *(buffer + swap_idx) = *(buffer + swap_idx - 1);
+                *(buffer + swap_idx - 1) = c;
+                if (insert_idx < buflen)
                     right();
             }
         }
+        
         virtual void left(size_t N = 1)
         {
             if (insert_idx > 0) {
@@ -162,11 +212,12 @@ namespace libchars {
                 }
             }
         }
+        
         virtual void right(size_t N = 1)
         {
-            if (insert_idx < length()) {
-                if ((insert_idx + N) > length()) {
-                    insert_idx = length();;
+            if (insert_idx < buflen) {
+                if ((insert_idx + N) > buflen) {
+                    insert_idx = buflen;
                 }
                 else {
                     insert_idx += N;
@@ -178,8 +229,8 @@ namespace libchars {
         {
             //NOTE: return number of *displayed* characters, which might
             // be different from sequence.length() (e.g. if color used)
-            if (limit > 0) 
-                sequence = buffer.substr(buf_idx);
+            if (limit > 0 && buf_idx < buflen) 
+                sequence.assign(buffer, buflen-buf_idx);
             else 
                 sequence.clear();
             return sequence.length();

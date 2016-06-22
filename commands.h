@@ -231,6 +231,8 @@ namespace libchars {
     private:
         void lexer();
 
+        const std::string value() const;
+
         virtual void set(const char *line,size_t idx = std::string::npos) { edit_object::set(line,idx); dirty=true; }
         virtual void insert(const char c) { edit_object::insert(c); dirty=true; }
         virtual void del() { edit_object::del(); dirty=true; }

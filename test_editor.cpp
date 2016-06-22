@@ -29,6 +29,14 @@ struct cmd_obj : public libchars::edit_object
 {
     cmd_obj(const char *str) : edit_object(libchars::MODE_COMMAND,str) {}
 
+    const std::string value() const
+    {
+        std::string str;
+        if (length() > 0 && data() != NULL)
+            str.assign(data(),length());
+        return str;
+    }
+
     virtual size_t render(size_t buf_idx, size_t limit, std::string &sequence)
     {
         if ((buf_idx + limit) > length())

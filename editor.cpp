@@ -139,7 +139,7 @@ namespace libchars {
             // print from previous cursor up to current end-of-buffer
             if (obj->cursor < obj->insert_idx) {
                 size_t n_to_write = (obj->insert_idx - obj->cursor);
-                driver.write(obj->value().data() + obj->cursor, n_to_write);
+                driver.write(obj->data() + obj->cursor, n_to_write);
                 obj->cursor = obj->insert_idx;
             }
         }
@@ -505,7 +505,8 @@ namespace libchars {
     {
         edit_object O_tmp(MODE_STRING,str);
         int r = edit(O_tmp, timeout_s);
-        if (r == 0) str = O_tmp.value();
+        if (r == 0 && O_tmp.length() > 0 && O_tmp.data() != NULL)
+            str.assign(O_tmp.data(),O_tmp.length());
         return r;
     }
 
