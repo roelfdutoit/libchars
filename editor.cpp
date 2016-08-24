@@ -490,6 +490,7 @@ namespace libchars {
                 case PARTIAL_SEQ:
                 case IGNORE_SEQ:
                 case SEQ_TIMEOUT:
+                case FORCED_RET:
                     break;// ignore sequence
                 }
 
@@ -497,7 +498,11 @@ namespace libchars {
                     print();
             }
         }
-        k = (r <= -3) ? SEQ_TIMEOUT : IGNORE_SEQ;
+        switch (r) {
+        case -3: k = SEQ_TIMEOUT; break;
+        case -4: k = FORCED_RET; break;
+        default: k = IGNORE_SEQ;
+        }
         return -1;
     }
 

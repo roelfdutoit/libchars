@@ -1089,6 +1089,7 @@ namespace libchars {
         switch (status) {
         case TERMINATED:
         case TIMEOUT:
+        case FORCED_RETURN:
             // ignore
             break;
         case VALID_COMMAND:
@@ -1401,7 +1402,9 @@ namespace libchars {
               (void)edit.edit(*this,timeout);
               switch (edit.key()) {
               case SEQ_TIMEOUT:
-                  return TIMEOUT; 
+                  return TIMEOUT;
+              case FORCED_RET:
+                  return FORCED_RETURN;
               case KEY_ENTER:
                   //TODO: remove quotes from strings
                   dump_tokens();

@@ -52,6 +52,7 @@ namespace libchars {
         PARTIAL_SEQ,
         IGNORE_SEQ,
         SEQ_TIMEOUT,
+        FORCED_RET,
     };
 
     class edit_object
@@ -302,6 +303,9 @@ namespace libchars {
 
         inline void newline() { driver.newline(); }
         inline void clear_screen() { driver.clear_screen(); }
+
+        inline void set_return_timeout(size_t timeout_s) { driver.set_return_timeout(timeout_s); }
+        inline void clear_return_timeout() { driver.clear_return_timeout(); }
 
         inline key_e key() { return k; } // key that triggered return in edit()
     };

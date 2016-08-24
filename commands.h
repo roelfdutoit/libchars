@@ -225,7 +225,8 @@ namespace libchars {
             TOO_FEW_ARGS,       // command found, not enough arguments specified
             TOO_MANY_ARGS,      // command found, too many arguments specified
             TERMINATED,         // command entry terminated with ctrl^C
-            TIMEOUT,            // terminal timeout; 
+            TIMEOUT,            // terminal inactivity timeout
+            FORCED_RETURN,      // absolute return timeout triggered
         } status_t;
 
     private:
@@ -288,6 +289,9 @@ namespace libchars {
         inline size_t color_length(command_colors_e color_idx) const { return strlen(color_str(color_idx)); }
 
         inline void clear_screen() { edit.clear_screen(); }
+        
+        inline void set_return_timeout(size_t timeout_s) { edit.set_return_timeout(timeout_s); }
+        inline void clear_return_timeout() { edit.clear_return_timeout(); }
 
         command_set &cset(const std::string &set_name); // add command set if not found
         bool cset_exists(const std::string &set_name);

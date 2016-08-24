@@ -39,6 +39,7 @@ namespace libchars {
     private:
         struct termios original_termios;
         struct timeval T_ws_updated;
+        uint64_t T_must_return_ms;
         bool is_tty;
         int fd_r; int fd_w;
         bool changed;
@@ -78,7 +79,7 @@ namespace libchars {
 
     private:
         int reallocate(size_t size_log2);
-        int read_characters(size_t timeout_s = 0);
+        int read_characters(bool skip_force_check);
         void get_terminal_width_and_height();
 
     public:
@@ -114,6 +115,9 @@ namespace libchars {
         int read(uint8_t &c, size_t timeout_s = 0);
 
         bool read_available() const;
+
+        void set_return_timeout(size_t timeout_s);
+        void clear_return_timeout();
 
     public:
         struct auto_cursor {

@@ -42,6 +42,7 @@ namespace libchars {
     const static uint64_t LC_CURSOR_POSITION_READ_TIMEOUT_ms = 5000;
 
     terminal_driver::terminal_driver() :
+        T_must_return_ms(0),
         is_tty(true),
         fd_r(-1),fd_w(-1),
         changed(false),
@@ -150,7 +151,7 @@ namespace libchars {
         return 0;
     }
 
-    int terminal_driver::read_characters(size_t timeout_s)
+    int terminal_driver::read_characters(bool skip_force_check)
     {
         while (true) {
             struct timeval T_now;
@@ -160,6 +161,10 @@ namespace libchars {
                 if (t_msec_now >= (t_msec_then + LC_WINDOW_SIZE_UPDATE_TIMEOUT_ms)) {
                     get_terminal_width_and_height();
                     T_ws_updated = T_now;
+                }
+                if (!skip_force_check && T_must_return_ms > 0 && t_msec_now > T_must_return_ms) {
+                    T_must_return_ms = 0;
+                    return -4;
                 }
             }
 
@@ -331,7 +336,7 @@ namespace libchars {
                 }
             }
             // pattern not found; need more characters
-            r = read_characters();
+            r = read_characters(true);
             if (r < 0)
                 return r;
             else if (r == 0) {
@@ -527,7 +532,7 @@ namespace libchars {
             uint64_t timeout_ms = timeout_s * 1000UL;
 
             while (rbuf_enq <= rbuf_deq) {
-                int r = read_characters(timeout_s);
+                int r = read_characters(false);
                 if (r < 0)
                     return r;
                 else if (r == 0) {
@@ -559,6 +564,23 @@ namespace libchars {
     bool terminal_driver::read_available() const
     {
         return rbuf_enq > rbuf_deq;
+    }
+    
+    void terminal_driver::set_return_timeout(size_t timeout_s)
+    {
+        struct timeval T_now;
+        if (timeout_s > 0 && gettimeofday(&T_now, NULL) == 0) {
+            uint64_t t_msec_now = T_now.tv_sec * 1000ULL + T_now.tv_usec/1000ULL;
+            this->T_must_return_ms = t_msec_now + timeout_s * 1000ULL;
+        }
+        else {
+            this->T_must_return_ms = 0;
+        }
+    }
+
+    void terminal_driver::clear_return_timeout()
+    {
+        this->T_must_return_ms = 0;
     }
 }
 

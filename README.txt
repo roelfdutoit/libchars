@@ -2,7 +2,7 @@ Copyright (C) 2013-2016 Roelof Nico du Toit.
 
 libchars - Command Line Interface (CLI) Framework
 
-Version 0.7 (21-Jun-2016)
+Version 0.8 (23-Aug-2016)
 
 See LICENSE.txt and all source files for license agreement.
 

@@ -252,6 +252,7 @@ int main(int argc, char *argv[])
     // get command (+history +completion)
     bool running = true;
     cmds.enable_timeout(5);
+    cmds.set_return_timeout(15); // <-- one-shot timeout
     while (running) {
         commands::status_t ret = cmds.run(__mask);
         switch (ret) {
@@ -283,11 +284,12 @@ int main(int argc, char *argv[])
         case commands::TERMINATED:
             // cancel current command
             break;
+        case commands::FORCED_RETURN:
         case commands::TIMEOUT:
             //NOTE: must call cmds.clear() if screen modified (e.g. printf) before calling cmds.run() again
             break;
         }
-        if (ret != commands::TIMEOUT)
+        if (ret != commands::TIMEOUT && ret != commands::FORCED_RETURN)
             cmds.clear();
     }
 
