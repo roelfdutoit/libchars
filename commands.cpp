@@ -1315,6 +1315,7 @@ namespace libchars {
     {
         status = EMPTY;
         dirty = true;
+        delete t_cmd;
         t_cmd = NULL;
         t_par = NULL;
         cmd = NULL;
