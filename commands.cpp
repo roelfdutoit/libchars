@@ -518,7 +518,7 @@ namespace libchars {
     {
         if (name != NULL || ID != token::ID_NOT_SET) {
             // break command string into tokens
-            std::auto_ptr<token> Tadd(libchars::lexer(cmd_str));
+            std::unique_ptr<token> Tadd(libchars::lexer(cmd_str));
             if (Tadd.get() == NULL)
                 return NULL;
             // make sure none of the tokens are quoted strings nor empty strings
@@ -1329,7 +1329,7 @@ namespace libchars {
             command *cmd = C_list;
             C_list = C_list->next;
             // break command string into tokens
-            std::auto_ptr<token> Tadd(libchars::lexer(cmd->cmd_str));
+            std::unique_ptr<token> Tadd(libchars::lexer(cmd->cmd_str));
             if (Tadd.get() == NULL)
                 continue;
             // add command word(s) to dictionary

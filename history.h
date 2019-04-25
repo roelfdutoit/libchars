@@ -33,7 +33,7 @@ namespace libchars {
     class history
     {
     public:
-        history() : busy(false),overflow(false) {}
+        history() : busy(false),overflow(false),s_idx(0) {}
         virtual ~history() {}
 
     protected:
